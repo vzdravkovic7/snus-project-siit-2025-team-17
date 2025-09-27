@@ -1,5 +1,6 @@
 ﻿using SnusProject.Data;
 using SnusProject.Models;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,16 +18,12 @@ namespace SnusProject
             new ClientInfo(3, "Client 3", ClientPermission.RotateOnly, 2)
         };
 
-        private DatabaseContext _db;
-
-        private static List<OperationRequest> operationQueue = new List<OperationRequest>();
+        private static ConcurrentQueue<OperationRequest> operationQueue = new ConcurrentQueue<OperationRequest>();
 
         private static Timer _queueTimer;
 
         public RobotArmService()
         {
-            _db = new DatabaseContext();
-
             if (_queueTimer == null)
             {
                 _queueTimer = new Timer(
@@ -56,20 +53,23 @@ namespace SnusProject
                 return;
             }
 
-            operationQueue.Add(new OperationRequest(clientId, operation));
+            operationQueue.Enqueue(new OperationRequest(clientId, operation));
         }
 
         private void ProcessQueue()
         {
-            operationQueue = operationQueue
-                .OrderBy(r => clients.Find(c => c.ClientId == r.ClientId).Priority)
+            var orderedRequests = operationQueue
+                .ToList()
+                .OrderBy(r => clients.Find(c => c.ClientId == r.ClientId)?.Priority ?? int.MaxValue)
                 .ToList();
 
-            while (operationQueue.Count > 0)
+            while (orderedRequests.Count > 0)
             {
-                var request = operationQueue[0];
+                var request = orderedRequests[0];
                 ExecuteOperation(request.ClientId, request.Operation);
-                operationQueue.RemoveAt(0);
+                orderedRequests.RemoveAt(0);
+
+                operationQueue.TryDequeue(out _);
             }
         }
 
@@ -124,9 +124,12 @@ namespace SnusProject
 
         private void LogOperation(int clientId, string operation, bool success)
         {
-            var log = new OperationLog(clientId, operation, success);
-            _db.OperationLogs.Add(log);
-            _db.SaveChanges();
+            using (var db = new DatabaseContext())
+            {
+                var log = new OperationLog(clientId, operation, success);
+                db.OperationLogs.Add(log);
+                db.SaveChanges();
+            }
         }
     }
 }
