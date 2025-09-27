@@ -40,7 +40,15 @@ namespace SnusProject
         public void EnqueueMoveDown(int clientId) => EnqueueOperation(clientId, "MoveDown");
         public void EnqueueRotate(int clientId) => EnqueueOperation(clientId, "Rotate");
 
-        public string GetCurrentState() => robotArm.ToString();
+        public RobotArmState GetCurrentState()
+        {
+            return new RobotArmState
+            {
+                X = robotArm.X,
+                Y = robotArm.Y,
+                Angle = robotArm.Angle
+            };
+        }
 
         private void EnqueueOperation(int clientId, string operation)
         {

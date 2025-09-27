@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://tempuri.org/" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" name="RobotArmService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://localhost:55401/RobotArmService.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:55401/RobotArmService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IRobotArmService_EnqueueMoveLeft_InputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveLeft" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveLeft_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveLeftResponse" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveRight_InputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveRight" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveRight_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveRightResponse" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveUp_InputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveUp" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveUp_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveUpResponse" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveDown_InputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveDown" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueMoveDown_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueMoveDownResponse" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueRotate_InputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueRotate" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_EnqueueRotate_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnqueueRotateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_GetCurrentState_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetCurrentState" />
+  </wsdl:message>
+  <wsdl:message name="IRobotArmService_GetCurrentState_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetCurrentStateResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IRobotArmService">
+    <wsdl:operation name="EnqueueMoveLeft">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveLeft" message="tns:IRobotArmService_EnqueueMoveLeft_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveLeftResponse" message="tns:IRobotArmService_EnqueueMoveLeft_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveRight">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveRight" message="tns:IRobotArmService_EnqueueMoveRight_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveRightResponse" message="tns:IRobotArmService_EnqueueMoveRight_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveUp">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveUp" message="tns:IRobotArmService_EnqueueMoveUp_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveUpResponse" message="tns:IRobotArmService_EnqueueMoveUp_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveDown">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveDown" message="tns:IRobotArmService_EnqueueMoveDown_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueMoveDownResponse" message="tns:IRobotArmService_EnqueueMoveDown_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueRotate">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueRotate" message="tns:IRobotArmService_EnqueueRotate_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/EnqueueRotateResponse" message="tns:IRobotArmService_EnqueueRotate_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCurrentState">
+      <wsdl:input wsaw:Action="http://tempuri.org/IRobotArmService/GetCurrentState" message="tns:IRobotArmService_GetCurrentState_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IRobotArmService/GetCurrentStateResponse" message="tns:IRobotArmService_GetCurrentState_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IRobotArmService" type="tns:IRobotArmService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="EnqueueMoveLeft">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/EnqueueMoveLeft" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveRight">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/EnqueueMoveRight" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveUp">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/EnqueueMoveUp" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueMoveDown">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/EnqueueMoveDown" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnqueueRotate">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/EnqueueRotate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCurrentState">
+      <soap:operation soapAction="http://tempuri.org/IRobotArmService/GetCurrentState" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="RobotArmService">
+    <wsdl:port name="BasicHttpBinding_IRobotArmService" binding="tns:BasicHttpBinding_IRobotArmService">
+      <soap:address location="http://localhost:55401/RobotArmService.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

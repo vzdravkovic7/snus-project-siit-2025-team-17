@@ -134,6 +134,7 @@
     <Compile Include="Models\OperationLog.cs" />
     <Compile Include="Models\OperationRequest.cs" />
     <Compile Include="Models\RobotArm.cs" />
+    <Compile Include="Models\RobotArmState.cs" />
     <Compile Include="RobotArmService.svc.cs">
       <DependentUpon>RobotArmService.svc</DependentUpon>
     </Compile>

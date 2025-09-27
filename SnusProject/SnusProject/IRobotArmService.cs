@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using SnusProject.Models;
+using System.ServiceModel;
 
 namespace SnusProject
 {
@@ -21,6 +22,6 @@ namespace SnusProject
         void EnqueueRotate(int clientId);
 
         [OperationContract]
-        string GetCurrentState();
+        RobotArmState GetCurrentState();
     }
 }
