@@ -57,6 +57,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="OperationResult.cs" />
     <Compile Include="RobotArmState.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -94,11 +95,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Connected Services\RobotArmServiceReference\ClientApp.RobotArmServiceReference.RobotArmState.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Connected Services\RobotArmServiceReference\RobotArmService.wsdl" />
     <None Include="Connected Services\RobotArmServiceReference\RobotArmService.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="Connected Services\RobotArmServiceReference\RobotArmService1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\RobotArmServiceReference\RobotArmService2.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="Properties\Settings.settings">

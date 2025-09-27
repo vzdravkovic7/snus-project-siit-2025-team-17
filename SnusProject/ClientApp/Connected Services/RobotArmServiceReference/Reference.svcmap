@@ -22,6 +22,7 @@
     <MetadataSource Address="http://localhost:55401/RobotArmService.svc" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
+    <MetadataFile FileName="RobotArmService2.xsd" MetadataType="Schema" ID="ca3f3a20-aee4-43e8-9842-8354c45a8726" SourceId="1" SourceUrl="http://localhost:55401/RobotArmService.svc?xsd=xsd2" />
     <MetadataFile FileName="RobotArmService.xsd" MetadataType="Schema" ID="ed55dfdb-8a6c-4c46-ac3b-455ea92dfb8e" SourceId="1" SourceUrl="http://localhost:55401/RobotArmService.svc?xsd=xsd1" />
     <MetadataFile FileName="RobotArmService.wsdl" MetadataType="Wsdl" ID="77565937-fe7d-47c5-be34-6f289407c4c7" SourceId="1" SourceUrl="http://localhost:55401/RobotArmService.svc?wsdl" />
     <MetadataFile FileName="RobotArmService1.xsd" MetadataType="Schema" ID="36d4955e-1398-43ad-82a9-2cefd8ce008f" SourceId="1" SourceUrl="http://localhost:55401/RobotArmService.svc?xsd=xsd0" />

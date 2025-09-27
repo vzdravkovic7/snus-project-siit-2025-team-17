@@ -128,11 +128,16 @@
     <Compile Include="Migrations\202509271842144_InitialCreate.Designer.cs">
       <DependentUpon>202509271842144_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202509272128561_InitialCreate1.cs" />
+    <Compile Include="Migrations\202509272128561_InitialCreate1.Designer.cs">
+      <DependentUpon>202509272128561_InitialCreate1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ClientInfo.cs" />
     <Compile Include="Models\ClientPermission.cs" />
     <Compile Include="Models\OperationLog.cs" />
     <Compile Include="Models\OperationRequest.cs" />
+    <Compile Include="Models\OperationResult.cs" />
     <Compile Include="Models\RobotArm.cs" />
     <Compile Include="Models\RobotArmState.cs" />
     <Compile Include="RobotArmService.svc.cs">
@@ -155,6 +160,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202509271842144_InitialCreate.resx">
       <DependentUpon>202509271842144_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202509272128561_InitialCreate1.resx">
+      <DependentUpon>202509272128561_InitialCreate1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

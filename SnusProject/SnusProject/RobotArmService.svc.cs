@@ -2,8 +2,8 @@
 using SnusProject.Models;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SnusProject
 {
@@ -18,7 +18,8 @@ namespace SnusProject
             new ClientInfo(3, "Client 3", ClientPermission.RotateOnly, 2)
         };
 
-        private static ConcurrentQueue<OperationRequest> operationQueue = new ConcurrentQueue<OperationRequest>();
+        private static ConcurrentQueue<OperationRequest> highPriorityQueue = new ConcurrentQueue<OperationRequest>();
+        private static ConcurrentQueue<OperationRequest> normalQueue = new ConcurrentQueue<OperationRequest>();
 
         private static Timer _queueTimer;
 
@@ -26,19 +27,56 @@ namespace SnusProject
         {
             if (_queueTimer == null)
             {
-                _queueTimer = new Timer(
-                    _ => ProcessQueue(),
-                    null,
-                    0,
-                    1000);
+                _queueTimer = new Timer(_ => ProcessQueue(), null, 0, 100);
             }
         }
 
-        public void EnqueueMoveLeft(int clientId) => EnqueueOperation(clientId, "MoveLeft");
-        public void EnqueueMoveRight(int clientId) => EnqueueOperation(clientId, "MoveRight");
-        public void EnqueueMoveUp(int clientId) => EnqueueOperation(clientId, "MoveUp");
-        public void EnqueueMoveDown(int clientId) => EnqueueOperation(clientId, "MoveDown");
-        public void EnqueueRotate(int clientId) => EnqueueOperation(clientId, "Rotate");
+        public Task<OperationResult> EnqueueMoveLeftAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveLeft");
+        public Task<OperationResult> EnqueueMoveRightAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveRight");
+        public Task<OperationResult> EnqueueMoveUpAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveUp");
+        public Task<OperationResult> EnqueueMoveDownAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveDown");
+        public Task<OperationResult> EnqueueRotateAsync(int clientId) => EnqueueOperationAsync(clientId, "Rotate");
+
+        private Task<OperationResult> EnqueueOperationAsync(int clientId, string operation)
+        {
+            var client = clients.Find(c => c.ClientId == clientId);
+            if (client == null)
+            {
+                return Task.FromResult(new OperationResult(operation, false));
+            }
+
+            if (!IsOperationAllowed(client.Permission, operation))
+            {
+                LogOperation(clientId, operation, false);
+                return Task.FromResult(new OperationResult(operation, false));
+            }
+
+            var request = new OperationRequest(clientId, operation);
+
+            if (client.Priority == 1)
+                highPriorityQueue.Enqueue(request);
+            else
+                normalQueue.Enqueue(request);
+
+            return request.Completion.Task;
+        }
+
+        private void ProcessQueue()
+        {
+            OperationRequest request;
+
+            while (highPriorityQueue.TryDequeue(out request))
+            {
+                bool success = ExecuteOperation(request.ClientId, request.Operation);
+                request.Completion.SetResult(new OperationResult(request.Operation, success));
+            }
+
+            while (normalQueue.TryDequeue(out request))
+            {
+                bool success = ExecuteOperation(request.ClientId, request.Operation);
+                request.Completion.SetResult(new OperationResult(request.Operation, success));
+            }
+        }
 
         public RobotArmState GetCurrentState()
         {
@@ -50,65 +88,20 @@ namespace SnusProject
             };
         }
 
-        private void EnqueueOperation(int clientId, string operation)
-        {
-            var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null) return;
-
-            if (!IsOperationAllowed(client.Permission, operation))
-            {
-                LogOperation(clientId, operation, false);
-                return;
-            }
-
-            operationQueue.Enqueue(new OperationRequest(clientId, operation));
-        }
-
-        private void ProcessQueue()
-        {
-            var orderedRequests = operationQueue
-                .ToList()
-                .OrderBy(r => clients.Find(c => c.ClientId == r.ClientId)?.Priority ?? int.MaxValue)
-                .ToList();
-
-            while (orderedRequests.Count > 0)
-            {
-                var request = orderedRequests[0];
-                ExecuteOperation(request.ClientId, request.Operation);
-                orderedRequests.RemoveAt(0);
-
-                operationQueue.TryDequeue(out _);
-            }
-        }
-
         private bool ExecuteOperation(int clientId, string operation)
         {
             var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null)
-                return false;
+            if (client == null) return false;
 
             bool success = false;
 
             switch (operation)
             {
-                case "MoveLeft":
-                    success = robotArm.MoveLeft();
-                    break;
-                case "MoveRight":
-                    success = robotArm.MoveRight();
-                    break;
-                case "MoveUp":
-                    success = robotArm.MoveUp();
-                    break;
-                case "MoveDown":
-                    success = robotArm.MoveDown();
-                    break;
-                case "Rotate":
-                    success = robotArm.Rotate();
-                    break;
-                default:
-                    success = false;
-                    break;
+                case "MoveLeft": success = robotArm.MoveLeft(); break;
+                case "MoveRight": success = robotArm.MoveRight(); break;
+                case "MoveUp": success = robotArm.MoveUp(); break;
+                case "MoveDown": success = robotArm.MoveDown(); break;
+                case "Rotate": success = robotArm.Rotate(); break;
             }
 
             LogOperation(clientId, operation, success);
@@ -119,14 +112,10 @@ namespace SnusProject
         {
             switch (permission)
             {
-                case ClientPermission.FullAccess:
-                    return true;
-                case ClientPermission.MoveOnly:
-                    return operation != "Rotate";
-                case ClientPermission.RotateOnly:
-                    return operation == "Rotate";
-                default:
-                    return false;
+                case ClientPermission.FullAccess: return true;
+                case ClientPermission.MoveOnly: return operation != "Rotate";
+                case ClientPermission.RotateOnly: return operation == "Rotate";
+                default: return false;
             }
         }
 
@@ -134,8 +123,7 @@ namespace SnusProject
         {
             using (var db = new DatabaseContext())
             {
-                var log = new OperationLog(clientId, operation, success);
-                db.OperationLogs.Add(log);
+                db.OperationLogs.Add(new OperationLog(clientId, operation, success));
                 db.SaveChanges();
             }
         }

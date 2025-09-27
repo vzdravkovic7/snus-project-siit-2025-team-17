@@ -1,5 +1,6 @@
 ﻿using SnusProject.Models;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace SnusProject
 {
@@ -7,19 +8,19 @@ namespace SnusProject
     public interface IRobotArmService
     {
         [OperationContract]
-        void EnqueueMoveLeft(int clientId);
+        Task<OperationResult> EnqueueMoveLeftAsync(int clientId);
 
         [OperationContract]
-        void EnqueueMoveRight(int clientId);
+        Task<OperationResult> EnqueueMoveRightAsync(int clientId);
 
         [OperationContract]
-        void EnqueueMoveUp(int clientId);
+        Task<OperationResult> EnqueueMoveUpAsync(int clientId);
 
         [OperationContract]
-        void EnqueueMoveDown(int clientId);
+        Task<OperationResult> EnqueueMoveDownAsync(int clientId);
 
         [OperationContract]
-        void EnqueueRotate(int clientId);
+        Task<OperationResult> EnqueueRotateAsync(int clientId);
 
         [OperationContract]
         RobotArmState GetCurrentState();

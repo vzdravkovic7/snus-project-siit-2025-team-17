@@ -1,11 +1,9 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Shapes;
 using System.Windows.Media;
 using ClientApp.RobotArmServiceReference;
 using System.Windows.Controls;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace ClientApp
 {
@@ -20,7 +18,8 @@ namespace ClientApp
             client = new RobotArmServiceClient();
 
             DrawGrid();
-            // Pokreni periodično osvežavanje stanja ruke sa servera
+            SetRobotArmToCanvasCenter();
+            _ = UpdateRobotArmPositionFromServer();
             StartUpdatingRobotState();
         }
 
@@ -52,6 +51,17 @@ namespace ClientApp
             }
         }
 
+        private void SetRobotArmToCanvasCenter()
+        {
+            double centerX = (RobotCanvas.Width - RobotArmShape.Width) / 2;
+            double centerY = (RobotCanvas.Height - RobotArmShape.Height) / 2;
+
+            Canvas.SetLeft(RobotArmShape, centerX);
+            Canvas.SetTop(RobotArmShape, centerY);
+
+            RobotArmShape.RenderTransform = new RotateTransform(0, RobotArmShape.Width / 2, RobotArmShape.Height / 2);
+        }
+
         private int GetClientId()
         {
             if (int.TryParse(ClientIdTextBox.Text, out int id))
@@ -65,38 +75,37 @@ namespace ClientApp
         private async void MoveDown_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Down");
         private async void Rotate_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Rotate");
 
-        private async Task SendCommandAsync(string command)
+        private async Task<bool> SendCommandAsync(string command)
         {
             int clientId = GetClientId();
+            bool success = false;
 
             switch (command)
             {
-                case "Left":
-                    client.EnqueueMoveLeft(clientId);
-                    break;
-                case "Right":
-                    client.EnqueueMoveRight(clientId);
-                    break;
-                case "Up":
-                    client.EnqueueMoveUp(clientId);
-                    break;
-                case "Down":
-                    client.EnqueueMoveDown(clientId);
-                    break;
-                case "Rotate":
-                    client.EnqueueRotate(clientId);
-                    break;
+                case "Left": await client.EnqueueMoveLeftAsync(clientId); break;
+                case "Right": await client.EnqueueMoveRightAsync(clientId); break;
+                case "Up": await client.EnqueueMoveUpAsync(clientId); break;
+                case "Down": await client.EnqueueMoveDownAsync(clientId); break;
+                case "Rotate": await client.EnqueueRotateAsync(clientId); break;
             }
 
-            // Nakon slanja komande, odmah osveži poziciju sa servera
-            await UpdateRobotArmPositionFromServer();
+            var state = await client.GetCurrentStateAsync();
+            if (state != null)
+            {
+                success = true;
+                Canvas.SetLeft(RobotArmShape, state.X * cellSize + 5);
+                Canvas.SetTop(RobotArmShape, state.Y * cellSize + 5);
+                RobotArmShape.RenderTransform = new RotateTransform(state.Angle, RobotArmShape.Width / 2, RobotArmShape.Height / 2);
+            }
+
+            return success;
         }
 
         private async Task UpdateRobotArmPositionFromServer()
         {
             try
             {
-                var state = await client.GetCurrentStateAsync(); // ovo vraća RobotArmState sa servera
+                var state = await client.GetCurrentStateAsync();
 
                 Canvas.SetLeft(RobotArmShape, state.X * cellSize + 5);
                 Canvas.SetTop(RobotArmShape, state.Y * cellSize + 5);
@@ -105,7 +114,6 @@ namespace ClientApp
             }
             catch
             {
-                // Ignoriši greške (server možda nije dostupan)
             }
         }
 
@@ -116,7 +124,7 @@ namespace ClientApp
                 while (true)
                 {
                     await Dispatcher.InvokeAsync(async () => await UpdateRobotArmPositionFromServer());
-                    await Task.Delay(500); // osvežavanje svakih 0.5s
+                    await Task.Delay(500);
                 }
             });
         }
