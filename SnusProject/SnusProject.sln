@@ -5,6 +5,11 @@ VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnusProject", "SnusProject\SnusProject.csproj", "{BC748B96-00FD-4B06-AE42-615BADBAC4E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApp", "ClientApp\ClientApp.csproj", "{0DAF19C9-3816-4F6E-B5AF-64187B860B15}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BC748B96-00FD-4B06-AE42-615BADBAC4E5} = {BC748B96-00FD-4B06-AE42-615BADBAC4E5}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +20,10 @@ Global
 		{BC748B96-00FD-4B06-AE42-615BADBAC4E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC748B96-00FD-4B06-AE42-615BADBAC4E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC748B96-00FD-4B06-AE42-615BADBAC4E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DAF19C9-3816-4F6E-B5AF-64187B860B15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DAF19C9-3816-4F6E-B5AF-64187B860B15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DAF19C9-3816-4F6E-B5AF-64187B860B15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DAF19C9-3816-4F6E-B5AF-64187B860B15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

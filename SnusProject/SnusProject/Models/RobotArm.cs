@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace SnusProject.Models
+﻿namespace SnusProject.Models
 {
     public class RobotArm
     {
@@ -43,7 +38,7 @@ namespace SnusProject.Models
 
         public bool MoveUp()
         {
-            if (Y > 1)
+            if (Y - 2 >= 0)
             {
                 Y -= 2;
                 return true;
@@ -53,7 +48,7 @@ namespace SnusProject.Models
 
         public bool MoveDown()
         {
-            if (Y < GridSize - 2)
+            if (Y + 2 < GridSize)
             {
                 Y += 2;
                 return true;

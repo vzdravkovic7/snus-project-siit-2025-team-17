@@ -1,26 +1,34 @@
-﻿using System.ServiceModel;
+﻿using SnusProject.Models;
+using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace SnusProject
 {
-    [ServiceContract]
+    [ServiceContract(CallbackContract = typeof(IRobotArmCallback))]
     public interface IRobotArmService
     {
         [OperationContract]
-        void EnqueueMoveLeft(int clientId);
+        Task<OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac);
 
         [OperationContract]
-        void EnqueueMoveRight(int clientId);
+        Task<OperationResult> EnqueueMoveRightAsync(int clientId, string hmac);
 
         [OperationContract]
-        void EnqueueMoveUp(int clientId);
+        Task<OperationResult> EnqueueMoveUpAsync(int clientId, string hmac);
 
         [OperationContract]
-        void EnqueueMoveDown(int clientId);
+        Task<OperationResult> EnqueueMoveDownAsync(int clientId, string hmac);
 
         [OperationContract]
-        void EnqueueRotate(int clientId);
+        Task<OperationResult> EnqueueRotateAsync(int clientId, string hmac);
 
         [OperationContract]
-        string GetCurrentState();
+        RobotArmState GetCurrentState();
+
+        [OperationContract]
+        void Subscribe();
+
+        [OperationContract]
+        void Unsubscribe();
     }
 }

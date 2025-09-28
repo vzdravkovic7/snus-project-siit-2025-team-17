@@ -2,14 +2,20 @@
 using SnusProject.Models;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.ServiceModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SnusProject
 {
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class RobotArmService : IRobotArmService
     {
+        private static List<IRobotArmCallback> subscribers = new List<IRobotArmCallback>();
+        private static readonly object subscriberLock = new object();
+
         private static RobotArm robotArm = new RobotArm();
+        private static readonly object robotLock = new object();
 
         private static List<ClientInfo> clients = new List<ClientInfo>
         {
@@ -18,118 +24,174 @@ namespace SnusProject
             new ClientInfo(3, "Client 3", ClientPermission.RotateOnly, 2)
         };
 
-        private static ConcurrentQueue<OperationRequest> operationQueue = new ConcurrentQueue<OperationRequest>();
+        private static BlockingCollection<OperationRequest> highPriorityQueue = new BlockingCollection<OperationRequest>();
+        private static BlockingCollection<OperationRequest> normalQueue = new BlockingCollection<OperationRequest>();
 
-        private static Timer _queueTimer;
+        private static CancellationTokenSource cts = new CancellationTokenSource();
 
         public RobotArmService()
         {
-            if (_queueTimer == null)
-            {
-                _queueTimer = new Timer(
-                    _ => ProcessQueue(),
-                    null,
-                    0,
-                    1000);
-            }
+            Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
         }
 
-        public void EnqueueMoveLeft(int clientId) => EnqueueOperation(clientId, "MoveLeft");
-        public void EnqueueMoveRight(int clientId) => EnqueueOperation(clientId, "MoveRight");
-        public void EnqueueMoveUp(int clientId) => EnqueueOperation(clientId, "MoveUp");
-        public void EnqueueMoveDown(int clientId) => EnqueueOperation(clientId, "MoveDown");
-        public void EnqueueRotate(int clientId) => EnqueueOperation(clientId, "Rotate");
+        #region Enqueue Methods
+        public Task<OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveLeft", hmac);
+        public Task<OperationResult> EnqueueMoveRightAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveRight", hmac);
+        public Task<OperationResult> EnqueueMoveUpAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveUp", hmac);
+        public Task<OperationResult> EnqueueMoveDownAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveDown", hmac);
+        public Task<OperationResult> EnqueueRotateAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "Rotate", hmac);
 
-        public string GetCurrentState() => robotArm.ToString();
-
-        private void EnqueueOperation(int clientId, string operation)
+        private Task<OperationResult> EnqueueOperationAsync(int clientId, string operation, string hmacFromClient)
         {
             var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null) return;
+            if (client == null) return Task.FromResult(new OperationResult(operation, false));
 
             if (!IsOperationAllowed(client.Permission, operation))
             {
                 LogOperation(clientId, operation, false);
-                return;
+                return Task.FromResult(new OperationResult(operation, false));
             }
 
-            operationQueue.Enqueue(new OperationRequest(clientId, operation));
-        }
+            string message = $"{clientId}:{operation}";
+            if (!SecurityHelper.VerifyHmac(message, hmacFromClient))
+            {
+                LogOperation(clientId, operation, false);
+                return Task.FromResult(new OperationResult(operation, false));
+            }
 
+            var request = new OperationRequest(clientId, operation, hmacFromClient);
+
+            if (client.Priority == 1)
+                highPriorityQueue.Add(request);
+            else
+                normalQueue.Add(request);
+
+            return request.Completion.Task;
+        }
+        #endregion
+
+        #region Queue Processing
         private void ProcessQueue()
         {
-            var orderedRequests = operationQueue
-                .ToList()
-                .OrderBy(r => clients.Find(c => c.ClientId == r.ClientId)?.Priority ?? int.MaxValue)
-                .ToList();
-
-            while (orderedRequests.Count > 0)
+            while (!cts.Token.IsCancellationRequested)
             {
-                var request = orderedRequests[0];
-                ExecuteOperation(request.ClientId, request.Operation);
-                orderedRequests.RemoveAt(0);
+                OperationRequest request = null;
 
-                operationQueue.TryDequeue(out _);
+                if (!highPriorityQueue.TryTake(out request, 1000, cts.Token))
+                {
+                    normalQueue.TryTake(out request, 1000, cts.Token);
+                }
+
+                if (request != null)
+                {
+                    bool success = ExecuteOperation(request.ClientId, request.Operation);
+                    request.Completion.SetResult(new OperationResult(request.Operation, success));
+
+                    NotifyClients();
+                }
+            }
+        }
+        #endregion
+
+        #region Robot Operations
+        public RobotArmState GetCurrentState()
+        {
+            lock (robotLock)
+            {
+                return new RobotArmState
+                {
+                    X = robotArm.X,
+                    Y = robotArm.Y,
+                    Angle = robotArm.Angle
+                };
             }
         }
 
         private bool ExecuteOperation(int clientId, string operation)
         {
-            var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null)
-                return false;
-
-            bool success = false;
-
-            switch (operation)
+            lock (robotLock)
             {
-                case "MoveLeft":
-                    success = robotArm.MoveLeft();
-                    break;
-                case "MoveRight":
-                    success = robotArm.MoveRight();
-                    break;
-                case "MoveUp":
-                    success = robotArm.MoveUp();
-                    break;
-                case "MoveDown":
-                    success = robotArm.MoveDown();
-                    break;
-                case "Rotate":
-                    success = robotArm.Rotate();
-                    break;
-                default:
-                    success = false;
-                    break;
-            }
+                var client = clients.Find(c => c.ClientId == clientId);
+                if (client == null) return false;
 
-            LogOperation(clientId, operation, success);
-            return success;
+                bool success = false;
+
+                switch (operation)
+                {
+                    case "MoveLeft": success = robotArm.MoveLeft(); break;
+                    case "MoveRight": success = robotArm.MoveRight(); break;
+                    case "MoveUp": success = robotArm.MoveUp(); break;
+                    case "MoveDown": success = robotArm.MoveDown(); break;
+                    case "Rotate": success = robotArm.Rotate(); break;
+                }
+
+                LogOperation(clientId, operation, success);
+                return success;
+            }
         }
 
         private bool IsOperationAllowed(ClientPermission permission, string operation)
         {
             switch (permission)
             {
-                case ClientPermission.FullAccess:
-                    return true;
-                case ClientPermission.MoveOnly:
-                    return operation != "Rotate";
-                case ClientPermission.RotateOnly:
-                    return operation == "Rotate";
-                default:
-                    return false;
+                case ClientPermission.FullAccess: return true;
+                case ClientPermission.MoveOnly: return operation != "Rotate";
+                case ClientPermission.RotateOnly: return operation == "Rotate";
+                default: return false;
             }
         }
+        #endregion
 
+        #region Database Logging
         private void LogOperation(int clientId, string operation, bool success)
         {
             using (var db = new DatabaseContext())
             {
-                var log = new OperationLog(clientId, operation, success);
-                db.OperationLogs.Add(log);
+                db.OperationLogs.Add(new OperationLog(clientId, operation, success));
                 db.SaveChanges();
             }
         }
+        #endregion
+
+        #region Callback (Observer)
+        public void Subscribe()
+        {
+            var callback = OperationContext.Current.GetCallbackChannel<IRobotArmCallback>();
+            lock (subscriberLock)
+            {
+                if (!subscribers.Contains(callback))
+                    subscribers.Add(callback);
+            }
+        }
+
+        public void Unsubscribe()
+        {
+            var callback = OperationContext.Current.GetCallbackChannel<IRobotArmCallback>();
+            lock (subscriberLock)
+            {
+                if (subscribers.Contains(callback))
+                    subscribers.Remove(callback);
+            }
+        }
+
+        private void NotifyClients()
+        {
+            var state = GetCurrentState();
+            lock (subscriberLock)
+            {
+                foreach (var sub in subscribers.ToArray())
+                {
+                    try
+                    {
+                        sub.OnStateChanged(state);
+                    }
+                    catch
+                    {
+                        subscribers.Remove(sub);
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }
