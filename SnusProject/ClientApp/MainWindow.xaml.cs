@@ -1,13 +1,16 @@
-﻿using System.Windows;
-using System.Windows.Shapes;
-using System.Windows.Media;
-using ClientApp.RobotArmServiceReference;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using ClientApp.RobotArmServiceReference;
+using System.ServiceModel;
 using System.Threading.Tasks;
+using ClientApp.Helpers;
 
 namespace ClientApp
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IRobotArmServiceCallback
     {
         private RobotArmServiceClient client;
         private const int cellSize = 50;
@@ -15,12 +18,21 @@ namespace ClientApp
         public MainWindow()
         {
             InitializeComponent();
-            client = new RobotArmServiceClient();
 
             DrawGrid();
             SetRobotArmToCanvasCenter();
-            _ = UpdateRobotArmPositionFromServer();
-            StartUpdatingRobotState();
+
+            var instanceContext = new InstanceContext(this);
+            client = new RobotArmServiceClient(instanceContext);
+
+            try
+            {
+                client.Subscribe();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
         }
 
         private void DrawGrid()
@@ -51,82 +63,85 @@ namespace ClientApp
             }
         }
 
+        private void RobotArmShape_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetRobotArmToCanvasCenter();
+        }
+
         private void SetRobotArmToCanvasCenter()
         {
-            double centerX = (RobotCanvas.Width - RobotArmShape.Width) / 2;
-            double centerY = (RobotCanvas.Height - RobotArmShape.Height) / 2;
+            double centerX = (RobotCanvas.Width - RobotArmShape.ActualWidth) / 2;
+            double centerY = (RobotCanvas.Height - RobotArmShape.ActualHeight) / 2;
 
             Canvas.SetLeft(RobotArmShape, centerX);
             Canvas.SetTop(RobotArmShape, centerY);
 
-            RobotArmShape.RenderTransform = new RotateTransform(0, RobotArmShape.Width / 2, RobotArmShape.Height / 2);
+            RobotArmShape.RenderTransform =
+                new RotateTransform(0, RobotArmShape.ActualWidth / 2, RobotArmShape.ActualHeight / 2);
         }
 
         private int GetClientId()
         {
             if (int.TryParse(ClientIdTextBox.Text, out int id))
                 return id;
-            return 1;
+            return -1;
         }
 
-        private async void MoveLeft_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Left");
-        private async void MoveRight_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Right");
-        private async void MoveUp_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Up");
-        private async void MoveDown_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Down");
+        private async void MoveLeft_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("MoveLeft");
+        private async void MoveRight_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("MoveRight");
+        private async void MoveUp_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("MoveUp");
+        private async void MoveDown_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("MoveDown");
         private async void Rotate_Click(object sender, RoutedEventArgs e) => await SendCommandAsync("Rotate");
 
-        private async Task<bool> SendCommandAsync(string command)
+        private async Task SendCommandAsync(string command)
         {
             int clientId = GetClientId();
-            bool success = false;
+            string message = $"{clientId}:{command}";
+            string hmac = SecurityHelper.ComputeHmac(message);
 
-            switch (command)
+            try
             {
-                case "Left": await client.EnqueueMoveLeftAsync(clientId); break;
-                case "Right": await client.EnqueueMoveRightAsync(clientId); break;
-                case "Up": await client.EnqueueMoveUpAsync(clientId); break;
-                case "Down": await client.EnqueueMoveDownAsync(clientId); break;
-                case "Rotate": await client.EnqueueRotateAsync(clientId); break;
+                switch (command)
+                {
+                    case "MoveLeft": await client.EnqueueMoveLeftAsync(clientId, hmac); break;
+                    case "MoveRight": await client.EnqueueMoveRightAsync(clientId, hmac); break;
+                    case "MoveUp": await client.EnqueueMoveUpAsync(clientId, hmac); break;
+                    case "MoveDown": await client.EnqueueMoveDownAsync(clientId , hmac); break;
+                    case "Rotate": await client.EnqueueRotateAsync(clientId, hmac); break;
+                }
             }
-
-            var state = await client.GetCurrentStateAsync();
-            if (state != null)
+            catch (Exception ex)
             {
-                success = true;
-                Canvas.SetLeft(RobotArmShape, state.X * cellSize + 5);
-                Canvas.SetTop(RobotArmShape, state.Y * cellSize + 5);
-                RobotArmShape.RenderTransform = new RotateTransform(state.Angle, RobotArmShape.Width / 2, RobotArmShape.Height / 2);
+                MessageBox.Show("Error: " + ex.Message);
             }
-
-            return success;
         }
 
-        private async Task UpdateRobotArmPositionFromServer()
+        public void OnStateChanged(RobotArmState state)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Canvas.SetLeft(RobotArmShape, state.X * cellSize + 5);
+                Canvas.SetTop(RobotArmShape, state.Y * cellSize + 5);
+
+                double centerX = RobotArmShape.ActualWidth / 2;
+                double centerY = RobotArmShape.ActualHeight / 2;
+
+                RobotArmShape.RenderTransform = new RotateTransform(state.Angle, centerX, centerY);
+            });
+        }
+
+        protected override void OnClosed(EventArgs e)
         {
             try
             {
-                var state = await client.GetCurrentStateAsync();
-
-                Canvas.SetLeft(RobotArmShape, state.X * cellSize + 5);
-                Canvas.SetTop(RobotArmShape, state.Y * cellSize + 5);
-
-                RobotArmShape.RenderTransform = new RotateTransform(state.Angle, RobotArmShape.Width / 2, RobotArmShape.Height / 2);
+                client.Unsubscribe();
+                client.Close();
             }
             catch
             {
+                client.Abort();
             }
-        }
-
-        private void StartUpdatingRobotState()
-        {
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Dispatcher.InvokeAsync(async () => await UpdateRobotArmPositionFromServer());
-                    await Task.Delay(500);
-                }
-            });
+            base.OnClosed(e);
         }
     }
 }

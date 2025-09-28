@@ -1,11 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/SnusProject.Models" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/SnusProject.Models" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:complexType name="RobotArmState">
-    <xs:sequence>
-      <xs:element minOccurs="0" name="Angle" type="xs:int" />
-      <xs:element minOccurs="0" name="X" type="xs:int" />
-      <xs:element minOccurs="0" name="Y" type="xs:int" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="RobotArmState" nillable="true" type="tns:RobotArmState" />
+<xs:schema xmlns:tns="http://tempuri.org/" elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:55401/RobotArmService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/SnusProject.Models" />
+  <xs:element name="EnqueueMoveLeft">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="clientId" type="xs:int" />
+        <xs:element minOccurs="0" name="hmac" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveLeftResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="EnqueueMoveLeftResult" nillable="true" type="q1:OperationResult" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveRight">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="clientId" type="xs:int" />
+        <xs:element minOccurs="0" name="hmac" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveRightResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="EnqueueMoveRightResult" nillable="true" type="q2:OperationResult" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveUp">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="clientId" type="xs:int" />
+        <xs:element minOccurs="0" name="hmac" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveUpResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q3="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="EnqueueMoveUpResult" nillable="true" type="q3:OperationResult" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveDown">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="clientId" type="xs:int" />
+        <xs:element minOccurs="0" name="hmac" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueMoveDownResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q4="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="EnqueueMoveDownResult" nillable="true" type="q4:OperationResult" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueRotate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="clientId" type="xs:int" />
+        <xs:element minOccurs="0" name="hmac" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnqueueRotateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q5="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="EnqueueRotateResult" nillable="true" type="q5:OperationResult" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetCurrentState">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetCurrentStateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q6="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="GetCurrentStateResult" nillable="true" type="q6:RobotArmState" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Subscribe">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SubscribeResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Unsubscribe">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UnsubscribeResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OnStateChanged">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q7="http://schemas.datacontract.org/2004/07/SnusProject.Models" minOccurs="0" name="state" nillable="true" type="q7:RobotArmState" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

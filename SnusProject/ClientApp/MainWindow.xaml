@@ -22,8 +22,10 @@
                 </Style>
             </Canvas.Resources>
 
-            <Polygon x:Name="RobotArmShape" Fill="Red" Stroke="Black" StrokeThickness="1"
-             Points="20,0 0,40 40,40"/>
+            <Image x:Name="RobotArmShape" 
+               Source="/img/robot.png"
+               Width="40" Height="40"
+               Loaded="RobotArmShape_Loaded"/>
         </Canvas>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">

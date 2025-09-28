@@ -1,18 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using SnusProject.Models;
+using System.Threading.Tasks;
 
-namespace SnusProject.Models
+public class OperationRequest
 {
-    public class OperationRequest
-    {
-        public int ClientId { get; set; }
-        public string Operation { get; set; }
-        public TaskCompletionSource<OperationResult> Completion { get; set; }
+    public int ClientId { get; }
+    public string Operation { get; }
+    public string Hmac { get; }
+    public TaskCompletionSource<OperationResult> Completion { get; }
 
-        public OperationRequest(int clientId, string operation)
-        {
-            ClientId = clientId;
-            Operation = operation;
-            Completion = new TaskCompletionSource<OperationResult>();
-        }
+    public OperationRequest(int clientId, string operation, string hmac)
+    {
+        ClientId = clientId;
+        Operation = operation;
+        Hmac = hmac;
+        Completion = new TaskCompletionSource<OperationResult>();
     }
 }

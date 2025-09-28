@@ -2,14 +2,20 @@
 using SnusProject.Models;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace SnusProject
 {
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class RobotArmService : IRobotArmService
     {
+        private static List<IRobotArmCallback> subscribers = new List<IRobotArmCallback>();
+        private static readonly object subscriberLock = new object();
+
         private static RobotArm robotArm = new RobotArm();
+        private static readonly object robotLock = new object();
 
         private static List<ClientInfo> clients = new List<ClientInfo>
         {
@@ -18,32 +24,27 @@ namespace SnusProject
             new ClientInfo(3, "Client 3", ClientPermission.RotateOnly, 2)
         };
 
-        private static ConcurrentQueue<OperationRequest> highPriorityQueue = new ConcurrentQueue<OperationRequest>();
-        private static ConcurrentQueue<OperationRequest> normalQueue = new ConcurrentQueue<OperationRequest>();
+        private static BlockingCollection<OperationRequest> highPriorityQueue = new BlockingCollection<OperationRequest>();
+        private static BlockingCollection<OperationRequest> normalQueue = new BlockingCollection<OperationRequest>();
 
-        private static Timer _queueTimer;
+        private static CancellationTokenSource cts = new CancellationTokenSource();
 
         public RobotArmService()
         {
-            if (_queueTimer == null)
-            {
-                _queueTimer = new Timer(_ => ProcessQueue(), null, 0, 100);
-            }
+            Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
         }
 
-        public Task<OperationResult> EnqueueMoveLeftAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveLeft");
-        public Task<OperationResult> EnqueueMoveRightAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveRight");
-        public Task<OperationResult> EnqueueMoveUpAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveUp");
-        public Task<OperationResult> EnqueueMoveDownAsync(int clientId) => EnqueueOperationAsync(clientId, "MoveDown");
-        public Task<OperationResult> EnqueueRotateAsync(int clientId) => EnqueueOperationAsync(clientId, "Rotate");
+        #region Enqueue Methods
+        public Task<OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveLeft", hmac);
+        public Task<OperationResult> EnqueueMoveRightAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveRight", hmac);
+        public Task<OperationResult> EnqueueMoveUpAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveUp", hmac);
+        public Task<OperationResult> EnqueueMoveDownAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "MoveDown", hmac);
+        public Task<OperationResult> EnqueueRotateAsync(int clientId, string hmac) => EnqueueOperationAsync(clientId, "Rotate", hmac);
 
-        private Task<OperationResult> EnqueueOperationAsync(int clientId, string operation)
+        private Task<OperationResult> EnqueueOperationAsync(int clientId, string operation, string hmacFromClient)
         {
             var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null)
-            {
-                return Task.FromResult(new OperationResult(operation, false));
-            }
+            if (client == null) return Task.FromResult(new OperationResult(operation, false));
 
             if (!IsOperationAllowed(client.Permission, operation))
             {
@@ -51,61 +52,82 @@ namespace SnusProject
                 return Task.FromResult(new OperationResult(operation, false));
             }
 
-            var request = new OperationRequest(clientId, operation);
+            string message = $"{clientId}:{operation}";
+            if (!SecurityHelper.VerifyHmac(message, hmacFromClient))
+            {
+                LogOperation(clientId, operation, false);
+                return Task.FromResult(new OperationResult(operation, false));
+            }
+
+            var request = new OperationRequest(clientId, operation, hmacFromClient);
 
             if (client.Priority == 1)
-                highPriorityQueue.Enqueue(request);
+                highPriorityQueue.Add(request);
             else
-                normalQueue.Enqueue(request);
+                normalQueue.Add(request);
 
             return request.Completion.Task;
         }
+        #endregion
 
+        #region Queue Processing
         private void ProcessQueue()
         {
-            OperationRequest request;
-
-            while (highPriorityQueue.TryDequeue(out request))
+            while (!cts.Token.IsCancellationRequested)
             {
-                bool success = ExecuteOperation(request.ClientId, request.Operation);
-                request.Completion.SetResult(new OperationResult(request.Operation, success));
-            }
+                OperationRequest request = null;
 
-            while (normalQueue.TryDequeue(out request))
-            {
-                bool success = ExecuteOperation(request.ClientId, request.Operation);
-                request.Completion.SetResult(new OperationResult(request.Operation, success));
+                if (!highPriorityQueue.TryTake(out request, 1000, cts.Token))
+                {
+                    normalQueue.TryTake(out request, 1000, cts.Token);
+                }
+
+                if (request != null)
+                {
+                    bool success = ExecuteOperation(request.ClientId, request.Operation);
+                    request.Completion.SetResult(new OperationResult(request.Operation, success));
+
+                    NotifyClients();
+                }
             }
         }
+        #endregion
 
+        #region Robot Operations
         public RobotArmState GetCurrentState()
         {
-            return new RobotArmState
+            lock (robotLock)
             {
-                X = robotArm.X,
-                Y = robotArm.Y,
-                Angle = robotArm.Angle
-            };
+                return new RobotArmState
+                {
+                    X = robotArm.X,
+                    Y = robotArm.Y,
+                    Angle = robotArm.Angle
+                };
+            }
         }
 
         private bool ExecuteOperation(int clientId, string operation)
         {
-            var client = clients.Find(c => c.ClientId == clientId);
-            if (client == null) return false;
-
-            bool success = false;
-
-            switch (operation)
+            lock (robotLock)
             {
-                case "MoveLeft": success = robotArm.MoveLeft(); break;
-                case "MoveRight": success = robotArm.MoveRight(); break;
-                case "MoveUp": success = robotArm.MoveUp(); break;
-                case "MoveDown": success = robotArm.MoveDown(); break;
-                case "Rotate": success = robotArm.Rotate(); break;
-            }
+                var client = clients.Find(c => c.ClientId == clientId);
+                if (client == null) return false;
 
-            LogOperation(clientId, operation, success);
-            return success;
+                bool success = false;
+
+                switch (operation)
+                {
+                    case "MoveLeft": success = robotArm.MoveLeft(); break;
+                    case "MoveRight": success = robotArm.MoveRight(); break;
+                    case "MoveUp": success = robotArm.MoveUp(); break;
+                    case "MoveDown": success = robotArm.MoveDown(); break;
+                    case "Rotate": success = robotArm.Rotate(); break;
+                }
+
+                LogOperation(clientId, operation, success);
+                return success;
+            }
         }
 
         private bool IsOperationAllowed(ClientPermission permission, string operation)
@@ -118,7 +140,9 @@ namespace SnusProject
                 default: return false;
             }
         }
+        #endregion
 
+        #region Database Logging
         private void LogOperation(int clientId, string operation, bool success)
         {
             using (var db = new DatabaseContext())
@@ -127,5 +151,47 @@ namespace SnusProject
                 db.SaveChanges();
             }
         }
+        #endregion
+
+        #region Callback (Observer)
+        public void Subscribe()
+        {
+            var callback = OperationContext.Current.GetCallbackChannel<IRobotArmCallback>();
+            lock (subscriberLock)
+            {
+                if (!subscribers.Contains(callback))
+                    subscribers.Add(callback);
+            }
+        }
+
+        public void Unsubscribe()
+        {
+            var callback = OperationContext.Current.GetCallbackChannel<IRobotArmCallback>();
+            lock (subscriberLock)
+            {
+                if (subscribers.Contains(callback))
+                    subscribers.Remove(callback);
+            }
+        }
+
+        private void NotifyClients()
+        {
+            var state = GetCurrentState();
+            lock (subscriberLock)
+            {
+                foreach (var sub in subscribers.ToArray())
+                {
+                    try
+                    {
+                        sub.OnStateChanged(state);
+                    }
+                    catch
+                    {
+                        subscribers.Remove(sub);
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }

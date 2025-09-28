@@ -4,25 +4,31 @@ using System.Threading.Tasks;
 
 namespace SnusProject
 {
-    [ServiceContract]
+    [ServiceContract(CallbackContract = typeof(IRobotArmCallback))]
     public interface IRobotArmService
     {
         [OperationContract]
-        Task<OperationResult> EnqueueMoveLeftAsync(int clientId);
+        Task<OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac);
 
         [OperationContract]
-        Task<OperationResult> EnqueueMoveRightAsync(int clientId);
+        Task<OperationResult> EnqueueMoveRightAsync(int clientId, string hmac);
 
         [OperationContract]
-        Task<OperationResult> EnqueueMoveUpAsync(int clientId);
+        Task<OperationResult> EnqueueMoveUpAsync(int clientId, string hmac);
 
         [OperationContract]
-        Task<OperationResult> EnqueueMoveDownAsync(int clientId);
+        Task<OperationResult> EnqueueMoveDownAsync(int clientId, string hmac);
 
         [OperationContract]
-        Task<OperationResult> EnqueueRotateAsync(int clientId);
+        Task<OperationResult> EnqueueRotateAsync(int clientId, string hmac);
 
         [OperationContract]
         RobotArmState GetCurrentState();
+
+        [OperationContract]
+        void Subscribe();
+
+        [OperationContract]
+        void Unsubscribe();
     }
 }

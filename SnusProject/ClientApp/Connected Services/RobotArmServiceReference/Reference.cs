@@ -15,6 +15,67 @@ namespace ClientApp.RobotArmServiceReference {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="OperationResult", Namespace="http://schemas.datacontract.org/2004/07/SnusProject.Models")]
+    [System.SerializableAttribute()]
+    public partial class OperationResult : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string OperationField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private bool SuccessField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Operation {
+            get {
+                return this.OperationField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.OperationField, value) != true)) {
+                    this.OperationField = value;
+                    this.RaisePropertyChanged("Operation");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public bool Success {
+            get {
+                return this.SuccessField;
+            }
+            set {
+                if ((this.SuccessField.Equals(value) != true)) {
+                    this.SuccessField = value;
+                    this.RaisePropertyChanged("Success");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="RobotArmState", Namespace="http://schemas.datacontract.org/2004/07/SnusProject.Models")]
     [System.SerializableAttribute()]
     public partial class RobotArmState : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
@@ -91,44 +152,63 @@ namespace ClientApp.RobotArmServiceReference {
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ServiceModel.ServiceContractAttribute(ConfigurationName="RobotArmServiceReference.IRobotArmService")]
+    [System.ServiceModel.ServiceContractAttribute(ConfigurationName="RobotArmServiceReference.IRobotArmService", CallbackContract=typeof(ClientApp.RobotArmServiceReference.IRobotArmServiceCallback))]
     public interface IRobotArmService {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveLeft", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveLeftResponse")]
-        void EnqueueMoveLeft(int clientId);
+        ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveLeft(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveLeft", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveLeftResponse")]
-        System.Threading.Tasks.Task EnqueueMoveLeftAsync(int clientId);
+        System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveRight", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveRightResponse")]
-        void EnqueueMoveRight(int clientId);
+        ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveRight(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveRight", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveRightResponse")]
-        System.Threading.Tasks.Task EnqueueMoveRightAsync(int clientId);
+        System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveRightAsync(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveUp", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveUpResponse")]
-        void EnqueueMoveUp(int clientId);
+        ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveUp(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveUp", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveUpResponse")]
-        System.Threading.Tasks.Task EnqueueMoveUpAsync(int clientId);
+        System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveUpAsync(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveDown", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveDownResponse")]
-        void EnqueueMoveDown(int clientId);
+        ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveDown(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueMoveDown", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueMoveDownResponse")]
-        System.Threading.Tasks.Task EnqueueMoveDownAsync(int clientId);
+        System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveDownAsync(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueRotate", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueRotateResponse")]
-        void EnqueueRotate(int clientId);
+        ClientApp.RobotArmServiceReference.OperationResult EnqueueRotate(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/EnqueueRotate", ReplyAction="http://tempuri.org/IRobotArmService/EnqueueRotateResponse")]
-        System.Threading.Tasks.Task EnqueueRotateAsync(int clientId);
+        System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueRotateAsync(int clientId, string hmac);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/GetCurrentState", ReplyAction="http://tempuri.org/IRobotArmService/GetCurrentStateResponse")]
         ClientApp.RobotArmServiceReference.RobotArmState GetCurrentState();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/GetCurrentState", ReplyAction="http://tempuri.org/IRobotArmService/GetCurrentStateResponse")]
         System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.RobotArmState> GetCurrentStateAsync();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/Subscribe", ReplyAction="http://tempuri.org/IRobotArmService/SubscribeResponse")]
+        void Subscribe();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/Subscribe", ReplyAction="http://tempuri.org/IRobotArmService/SubscribeResponse")]
+        System.Threading.Tasks.Task SubscribeAsync();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/Unsubscribe", ReplyAction="http://tempuri.org/IRobotArmService/UnsubscribeResponse")]
+        void Unsubscribe();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IRobotArmService/Unsubscribe", ReplyAction="http://tempuri.org/IRobotArmService/UnsubscribeResponse")]
+        System.Threading.Tasks.Task UnsubscribeAsync();
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public interface IRobotArmServiceCallback {
+        
+        [System.ServiceModel.OperationContractAttribute(IsOneWay=true, Action="http://tempuri.org/IRobotArmService/OnStateChanged")]
+        void OnStateChanged(ClientApp.RobotArmServiceReference.RobotArmState state);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -137,65 +217,66 @@ namespace ClientApp.RobotArmServiceReference {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class RobotArmServiceClient : System.ServiceModel.ClientBase<ClientApp.RobotArmServiceReference.IRobotArmService>, ClientApp.RobotArmServiceReference.IRobotArmService {
+    public partial class RobotArmServiceClient : System.ServiceModel.DuplexClientBase<ClientApp.RobotArmServiceReference.IRobotArmService>, ClientApp.RobotArmServiceReference.IRobotArmService {
         
-        public RobotArmServiceClient() {
+        public RobotArmServiceClient(System.ServiceModel.InstanceContext callbackInstance) : 
+                base(callbackInstance) {
         }
         
-        public RobotArmServiceClient(string endpointConfigurationName) : 
-                base(endpointConfigurationName) {
+        public RobotArmServiceClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName) : 
+                base(callbackInstance, endpointConfigurationName) {
         }
         
-        public RobotArmServiceClient(string endpointConfigurationName, string remoteAddress) : 
-                base(endpointConfigurationName, remoteAddress) {
+        public RobotArmServiceClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName, string remoteAddress) : 
+                base(callbackInstance, endpointConfigurationName, remoteAddress) {
         }
         
-        public RobotArmServiceClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(endpointConfigurationName, remoteAddress) {
+        public RobotArmServiceClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(callbackInstance, endpointConfigurationName, remoteAddress) {
         }
         
-        public RobotArmServiceClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(binding, remoteAddress) {
+        public RobotArmServiceClient(System.ServiceModel.InstanceContext callbackInstance, System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(callbackInstance, binding, remoteAddress) {
         }
         
-        public void EnqueueMoveLeft(int clientId) {
-            base.Channel.EnqueueMoveLeft(clientId);
+        public ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveLeft(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveLeft(clientId, hmac);
         }
         
-        public System.Threading.Tasks.Task EnqueueMoveLeftAsync(int clientId) {
-            return base.Channel.EnqueueMoveLeftAsync(clientId);
+        public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveLeftAsync(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveLeftAsync(clientId, hmac);
         }
         
-        public void EnqueueMoveRight(int clientId) {
-            base.Channel.EnqueueMoveRight(clientId);
+        public ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveRight(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveRight(clientId, hmac);
         }
         
-        public System.Threading.Tasks.Task EnqueueMoveRightAsync(int clientId) {
-            return base.Channel.EnqueueMoveRightAsync(clientId);
+        public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveRightAsync(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveRightAsync(clientId, hmac);
         }
         
-        public void EnqueueMoveUp(int clientId) {
-            base.Channel.EnqueueMoveUp(clientId);
+        public ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveUp(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveUp(clientId, hmac);
         }
         
-        public System.Threading.Tasks.Task EnqueueMoveUpAsync(int clientId) {
-            return base.Channel.EnqueueMoveUpAsync(clientId);
+        public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveUpAsync(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveUpAsync(clientId, hmac);
         }
         
-        public void EnqueueMoveDown(int clientId) {
-            base.Channel.EnqueueMoveDown(clientId);
+        public ClientApp.RobotArmServiceReference.OperationResult EnqueueMoveDown(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveDown(clientId, hmac);
         }
         
-        public System.Threading.Tasks.Task EnqueueMoveDownAsync(int clientId) {
-            return base.Channel.EnqueueMoveDownAsync(clientId);
+        public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueMoveDownAsync(int clientId, string hmac) {
+            return base.Channel.EnqueueMoveDownAsync(clientId, hmac);
         }
         
-        public void EnqueueRotate(int clientId) {
-            base.Channel.EnqueueRotate(clientId);
+        public ClientApp.RobotArmServiceReference.OperationResult EnqueueRotate(int clientId, string hmac) {
+            return base.Channel.EnqueueRotate(clientId, hmac);
         }
         
-        public System.Threading.Tasks.Task EnqueueRotateAsync(int clientId) {
-            return base.Channel.EnqueueRotateAsync(clientId);
+        public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.OperationResult> EnqueueRotateAsync(int clientId, string hmac) {
+            return base.Channel.EnqueueRotateAsync(clientId, hmac);
         }
         
         public ClientApp.RobotArmServiceReference.RobotArmState GetCurrentState() {
@@ -204,6 +285,22 @@ namespace ClientApp.RobotArmServiceReference {
         
         public System.Threading.Tasks.Task<ClientApp.RobotArmServiceReference.RobotArmState> GetCurrentStateAsync() {
             return base.Channel.GetCurrentStateAsync();
+        }
+        
+        public void Subscribe() {
+            base.Channel.Subscribe();
+        }
+        
+        public System.Threading.Tasks.Task SubscribeAsync() {
+            return base.Channel.SubscribeAsync();
+        }
+        
+        public void Unsubscribe() {
+            base.Channel.Unsubscribe();
+        }
+        
+        public System.Threading.Tasks.Task UnsubscribeAsync() {
+            return base.Channel.UnsubscribeAsync();
         }
     }
 }

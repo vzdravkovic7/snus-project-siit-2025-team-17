@@ -38,7 +38,7 @@
 
         public bool MoveUp()
         {
-            if (Y > 1)
+            if (Y - 2 >= 0)
             {
                 Y -= 2;
                 return true;
@@ -48,7 +48,7 @@
 
         public bool MoveDown()
         {
-            if (Y < GridSize - 2)
+            if (Y + 2 < GridSize)
             {
                 Y += 2;
                 return true;
