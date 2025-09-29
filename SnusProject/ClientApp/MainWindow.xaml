@@ -1,0 +1,39 @@
+﻿<Window x:Class="ClientApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Robot Arm Client" Height="450" Width="350">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="ClientId:" VerticalAlignment="Center"/>
+            <TextBox x:Name="ClientIdTextBox" Width="50" Margin="5,0,0,0"/>
+        </StackPanel>
+
+        <Canvas x:Name="RobotCanvas" Grid.Row="1" Background="LightGray" Width="250" Height="250">
+            <Canvas.Resources>
+                <Style TargetType="Line">
+                    <Setter Property="Stroke" Value="Black"/>
+                    <Setter Property="StrokeThickness" Value="1"/>
+                </Style>
+            </Canvas.Resources>
+
+            <Image x:Name="RobotArmShape" 
+               Source="/img/robot.png"
+               Width="40" Height="40"
+               Loaded="RobotArmShape_Loaded"/>
+        </Canvas>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Content="Left" Width="60" Click="MoveLeft_Click"/>
+            <Button Content="Right" Width="60" Click="MoveRight_Click" Margin="5,0,0,0"/>
+            <Button Content="Up" Width="60" Click="MoveUp_Click" Margin="5,0,0,0"/>
+            <Button Content="Down" Width="60" Click="MoveDown_Click" Margin="5,0,0,0"/>
+            <Button Content="Rotate" Width="60" Click="Rotate_Click" Margin="5,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>
